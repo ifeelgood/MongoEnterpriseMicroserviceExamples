@@ -30,6 +30,12 @@ jobs:
         cache: maven
     - name: Build with Maven
       run: mvn -B verify --file memex/pom.xml
+
+    - name: Archive Jacoco reports
+      uses: actions/upload-artifact@v3
+      with:
+        name: jacoco-reports
+        path: ${{ github.workspace }}/memex/target/site/jacoco
                   
     - name: JaCoCo Report
       uses: Madrapps/jacoco-report@v1.7.2
@@ -39,4 +45,6 @@ jobs:
           ${{ github.workspace }}/memex/target/site/jacoco/jacoco.xml
         # Github personal token to add comments to Pull Request
         token: ${{ secrets.GITHUB_TOKEN }}
+        title: '# Java Code Coverage Report'
+        
           
