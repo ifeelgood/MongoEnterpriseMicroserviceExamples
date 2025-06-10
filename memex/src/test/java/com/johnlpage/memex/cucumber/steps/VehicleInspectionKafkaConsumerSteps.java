@@ -53,6 +53,7 @@ public class VehicleInspectionKafkaConsumerSteps extends BaseCucumberSteps {
                     parsedValue = Long.parseLong(value);
                 }
 
+                // For nested keys, like "vehicle.make"
                 String[] keys = key.split("\\.");
                 Map<String, Object> nested = jsonMap;
 
@@ -94,6 +95,7 @@ public class VehicleInspectionKafkaConsumerSteps extends BaseCucumberSteps {
                 String key = entry.getKey();
                 String expectedValue = entry.getValue();
 
+                // For nested keys, like "vehicle.make"
                 String[] keys = key.split("\\.");
                 Object currentValue = vi;
                 for (String k : keys) {
