@@ -17,9 +17,6 @@ import org.springframework.test.context.TestPropertySource;
 @SpringBootTest(classes = CucumberTestsContainersConfig.class, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test")
 @EmbeddedKafka(partitions = 1, topics = {"test"})
-@TestPropertySource(properties = {
-        "memex.kafkaexmple.enabled=true"
-})
 public class CucumberSpringContextConfig {
 
     @Autowired
