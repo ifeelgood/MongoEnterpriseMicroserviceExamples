@@ -325,8 +325,8 @@ Feature: Vehicle Inspection API Management
   @post @atlas_search @sunny_day
   Scenario: Successfully execute an Atlas Search query
     Given the following vehicle inspections exist:
-      | testid | vehicle.model |
-      | 1001   | Corolla       |
+      | json                                                                                |
+      | {"testid": 1001, "vehicle": {"model": "Corolla"}}                                   |
     When I send a POST request to "/api/inspections/search" with the payload:
       """
       {
