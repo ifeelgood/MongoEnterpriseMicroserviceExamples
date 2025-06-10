@@ -19,20 +19,4 @@ import org.springframework.test.context.TestPropertySource;
 @EmbeddedKafka(partitions = 1, topics = {"test"})
 public class CucumberSpringContextConfig {
 
-    @Autowired
-    private MongoTemplate mongoTemplate;
-
-    @Value("${memex.test.data.vehicleinspection-testid-range.start:1000}")
-    private long idStart;
-
-    @Value("${memex.test.data.vehicleinspection-testid-range.end:100000}")
-    private long idEnd;
-
-    @Before
-    public void wipeTestData() {
-        for (String collectionName : mongoTemplate.getCollectionNames()) {
-            Query query = new Query(Criteria.where("_id").gte(idStart).lt(idEnd));
-            mongoTemplate.remove(query, collectionName);
-        }
-    }
 }

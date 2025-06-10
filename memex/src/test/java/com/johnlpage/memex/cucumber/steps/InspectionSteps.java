@@ -19,19 +19,19 @@ import io.restassured.path.json.JsonPath;
 import io.restassured.response.Response;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+import org.bson.Document;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.core.query.Update;
 
-public class InspectionSteps {
+public class InspectionSteps extends BaseCucumberSteps {
 
     @LocalServerPort
     private int port;
@@ -42,13 +42,6 @@ public class InspectionSteps {
     @Autowired
     private ObjectMapper objectMapper;
 
-    @Value("${memex.test.data.vehicleinspection-testid-range.start:1000}")
-    private long idStart;
-
-    @Value("${memex.test.data.vehicleinspection-testid-range.end:100000}")
-    private long idEnd;
-
-
     private Response response;
     private ZonedDateTime capturedTimestamp;
 
@@ -57,46 +50,56 @@ public class InspectionSteps {
     }
 
     @ParameterType("true|false")
-    public Boolean bool(String bool){
+    public Boolean bool(String bool) {
         return Boolean.parseBoolean(bool);
     }
 
     @Given("the following vehicle inspections exist:")
     public void givenVehicleInspectionsExist(DataTable dataTable) throws JsonProcessingException {
         List<Map<String, String>> rows = dataTable.asMaps(String.class, String.class);
-        List<VehicleInspection> inspections = new ArrayList<>();
 
         for (Map<String, String> row : rows) {
             String json = row.get("vehicleInspection");
             VehicleInspection inspection = objectMapper.readValue(json, VehicleInspection.class);
-            inspections.add(inspection);
+            long testId = inspection.getTestid();
+
+            if(isIdWithinRange(testId)) {
+                Query query = Query.query(Criteria.where("_id").is(testId));
+
+                Document updateDoc = new Document(objectMapper.convertValue(inspection, Map.class));
+                Update update = Update.fromDocument(updateDoc);
+
+                mongoTemplate.upsert(query, update, VehicleInspection.class);
+            } else {
+                throw new AssertionError("Mongo test ID: "+testId+" outside of specified test range");
+            }
+
         }
-
-        List<VehicleInspection> filtered = inspections.stream()
-                .filter(vi -> vi.getTestid() != null && vi.getTestid() >= idStart && vi.getTestid() <= idEnd)
-                .toList();
-
-        mongoTemplate.insertAll(filtered);
     }
 
-    @Given("the vehicle inspections in range {long}-{long} do not exist:")
+    @Given("the vehicle inspections in range {long}-{long} do not exist")
     public void theFollowingVehicleInspectionsInRangeDoesNotExist(long startId, long endId) {
+        if (endId < startId || !isIdWithinRange(startId) || !isIdWithinRange(endId)) {
+            throw new IllegalArgumentException("Invalid range of IDs specified, startId: "+startId +" , endId: "+endId);
+        }
         Query query = new Query();
         query.addCriteria(Criteria.where("_id").gte(startId).lte(endId));
         mongoTemplate.remove(query, VehicleInspection.class);
     }
 
-    @Given("the vehicle inspection with id: {long} do not exist:")
-    public void theFollowingVehicleInspectionDoesNotExist(long startId) {
+    @Given("the vehicle inspection with id: {long} do not exist")
+    public void theFollowingVehicleInspectionDoesNotExist(long testId) {
+        if(!isIdWithinRange(testId)) {
+            throw new AssertionError("Mongo test ID: "+testId+" outside of specified test range");
+        }
         Query query = new Query();
-        query.addCriteria(Criteria.where("_id").is(startId));
+        query.addCriteria(Criteria.where("_id").is(testId));
         mongoTemplate.remove(query, VehicleInspection.class);
     }
 
     @Given("the following vehicle inspections do not exist:")
     public void givenTheFollowingVehicleInspectionsDoNotExist(DataTable dataTable) {
         for (Map<String, String> row : dataTable.asMaps()) {
-
             if (row.size() != 1) {
                 throw new IllegalArgumentException("Only one column per row is supported in this step.");
             }
@@ -112,19 +115,17 @@ public class InspectionSteps {
                         idInQueryExists = true;
                         yield Query.query(Criteria.where("_id").is(testid));
                     } else {
-                        yield null;
+                        throw new AssertionError("Mongo test ID: " + testid + " out of specified testing range");
                     }
                 }
-                case "model" -> Query.query(Criteria.where("vehicle.model").is(value));
                 default -> Query.query(Criteria.where(key).is(value));
             };
 
-            if(query != null) {
-                if(!idInQueryExists) {
-                    query.addCriteria(Criteria.where("_id").gte(idStart).lte(idEnd));
-                }
-                mongoTemplate.remove(query, VehicleInspection.class);
+            if (!idInQueryExists) {
+                query.addCriteria(Criteria.where("_id").gte(idStart).lte(idEnd));
             }
+            mongoTemplate.remove(query, VehicleInspection.class);
+
         }
     }
 
@@ -223,7 +224,7 @@ public class InspectionSteps {
         List<Map<String, Object>> list = jsonPath.getList("$");
         assertFalse(list.isEmpty(), "Response array should not be empty for this check");
         for (Map<String, Object> item : list) {
-            if(key.indexOf('.') > 0) {
+            if (key.indexOf('.') > 0) {
                 // If the value is a vehicle field, we need to check the nested structure
                 String[] parts = key.split("\\.");
                 assertThat(item, hasKey(parts[0]));
@@ -259,12 +260,12 @@ public class InspectionSteps {
         assertFalse(body.isEmpty(), "Response body should not be empty for stream check");
 
         // Split by any standard newline character(s)
-        String[] lines = body.split("\\r?\\n"); 
+        String[] lines = body.split("\\r?\\n");
         assertTrue(lines.length > 0, "Response body should contain at least one line for stream check");
 
         for (String line : lines) {
             // Skip potentially empty lines that might result from splitting (e.g., trailing newline)
-            if (line.trim().isEmpty()) continue; 
+            if (line.trim().isEmpty()) continue;
             try {
                 JsonPath.from(line); // This will throw an exception if the line is not valid JSON
             } catch (Exception e) {
