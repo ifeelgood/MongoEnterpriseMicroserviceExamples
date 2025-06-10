@@ -63,7 +63,7 @@ Feature: Vehicle Inspection API Management
   @get @by_id @sunny_day
   Scenario: Successfully retrieve a vehicle inspection by ID
     Given the following vehicle inspections exist:
-      | json                                                                                  |
+      | vehicleInspection                                                                                  |
       | {"testid": 1001, "vehicle": {"model": "Corolla"}}                                     |
     When I send a GET request to "/api/inspections/id/1001"
     Then the response status code should be 200
@@ -138,7 +138,7 @@ Feature: Vehicle Inspection API Management
   @post @load_stream @sunny_day
   Scenario: Successfully delete a vehicle inspection
     Given the following vehicle inspections exist:
-      | json                                                 |
+      | vehicleInspection                                                 |
       | {"testid": 2007}                                     |
     When I send a POST request to "/api/inspections?updateStrategy=UPDATEWITHHISTORY&futz=true" with the payload:
       """
@@ -176,7 +176,7 @@ Feature: Vehicle Inspection API Management
   @get @by_model @sunny_day
   Scenario Outline: Successfully retrieve vehicle inspections by model with pagination
     Given the following vehicle inspections exist:
-      | json                                                                                    |
+      | vehicleInspection                                                                                    |
       | {"testid": 2002, "vehicle": {"model": "Focus"}}                                         |
       | {"testid": 2004, "vehicle": {"model": "Focus"}}                                         |
       | {"testid": 2006, "vehicle": {"model": "Focus"}}                                         |
@@ -207,7 +207,7 @@ Feature: Vehicle Inspection API Management
   @post @mongo_query @sunny_day
   Scenario: Successfully execute a native MongoDB query with sorting and filter on non-indexed field
     Given the following vehicle inspections exist:
-    | json                                                                                  |
+    | vehicleInspection                                                                                  |
     | {"testid": 1001, "vehicle": {"make": "Toyota"}}                                       |
     | {"testid": 2002, "vehicle": {"make": "Ford"}}                                         |
     When I send a POST request to "/api/inspections/query" with the payload:
@@ -228,7 +228,7 @@ Feature: Vehicle Inspection API Management
   @post @mongo_query @sunny_day
   Scenario: Successfully execute a native MongoDB query with sorting and filter on indexed field
     Given the following vehicle inspections exist:
-      | json                                                                                    |
+      | vehicleInspection                                                                                    |
       | {"testid": 1001, "vehicle": {"model": "Corolla"}}                                       |
       | {"testid": 2002, "vehicle": {"model": "Focus"}}                                         |
     When I send a POST request to "/api/inspections/query" with the payload:
@@ -261,7 +261,7 @@ Feature: Vehicle Inspection API Management
   @get @stream_json @sunny_day
   Scenario: Successfully stream all vehicle inspections as JSON
     Given the following vehicle inspections exist:
-      | json                                                                                  |
+      | vehicleInspection                                                                                  |
       | {"testid": 1001, "vehicle": {"make": "Toyota"}}                                       |
       | {"testid": 2002, "vehicle": {"make": "Ford"}}                                         |
     When I send a GET request to "/api/inspections/json"
@@ -273,7 +273,7 @@ Feature: Vehicle Inspection API Management
   @get @stream_json_native @sunny_day
   Scenario: Successfully stream all vehicle inspections as native JSON
     Given the following vehicle inspections exist:
-      | json                                                                                  |
+      | vehicleInspection                                                                                  |
       | {"testid": 1001, "vehicle": {"make": "Toyota"}}                                       |
       | {"testid": 2002, "vehicle": {"make": "Ford"}}                                         |
     When I send a GET request to "/api/inspections/jsonnative"
@@ -285,7 +285,7 @@ Feature: Vehicle Inspection API Management
   @get @as_of @sunny_day
   Scenario: Successfully retrieve vehicle inspection history as of a specific date
     Given the following vehicle inspections exist:
-      | json                                                                                |
+      | vehicleInspection                                                                                |
       | {"testid": 2006, "vehicle": {"make": "Ford", "model": "Focus"}}                     |
     And I wait for 1 second
     And I capture the current timestamp
@@ -325,8 +325,9 @@ Feature: Vehicle Inspection API Management
   @post @atlas_search @sunny_day
   Scenario: Successfully execute an Atlas Search query
     Given the following vehicle inspections exist:
-      | json                                                                                |
+      | vehicleInspection                                                                                |
       | {"testid": 1001, "vehicle": {"model": "Corolla"}}                                   |
+    And I wait for 1 second
     When I send a POST request to "/api/inspections/search" with the payload:
       """
       {

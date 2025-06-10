@@ -24,12 +24,12 @@ public class VehicleInspectionKafkaConsumerSteps {
     @Autowired
     private ObjectMapper objectMapper;
 
-    @Given("{int} vehicle inspections records are sent to kafka with capacity {long}")
-    public void givenSendKafkaVehicleInspectionRecords(int iterationCount, long capacity) throws JsonProcessingException {
+    @Given("{int} vehicle inspections records starting from id {long} are sent to kafka with capacity {long}")
+    public void givenSendKafkaVehicleInspectionRecords(int iterationCount, long startingId, long capacity) throws JsonProcessingException {
 
         for(int i=0;i<iterationCount;i++) {
             VehicleInspection inspection = new VehicleInspection();
-            inspection.setTestid(91000L+i);
+            inspection.setTestid(startingId+i);
             inspection.setTestdate(new Date());
             inspection.setTestclass("A"+i);
             inspection.setTestresult("PASS");
@@ -40,10 +40,12 @@ public class VehicleInspectionKafkaConsumerSteps {
         }
     }
 
-    @Then("verify {int} records are saved in mongo with capacity {long}")
-    public void theResponseShouldBeAStreamOfValidJsonObjectsEachOnANewLine(int recordsCount, long capacity) {
+    @Then("verify {int} records are saved starting from id {long} in mongo with capacity {long}")
+    public void theResponseShouldBeAStreamOfValidJsonObjectsEachOnANewLine(int recordsCount,long startingId, long capacity) {
+        long endingId = startingId + recordsCount;
         List<VehicleInspection> savedDocs = mongoTemplate.findAll(VehicleInspection.class);
         Assertions.assertThat(savedDocs).hasSize(recordsCount);
-        Assertions.assertThat(savedDocs.stream().allMatch((vi)->vi.getCapacity().equals(capacity))).isTrue();
+        Assertions.assertThat(savedDocs.stream().allMatch((vi)->vi.getCapacity().equals(capacity)
+                && vi.getTestid()>=startingId && vi.getTestid()<endingId)).isTrue();
     }
 }

@@ -18,7 +18,6 @@ import org.springframework.test.context.TestPropertySource;
 @ActiveProfiles("test")
 @EmbeddedKafka(partitions = 1, topics = {"test"})
 @TestPropertySource(properties = {
-        "memex.testcontainers.mongodb.enabled=true",
         "memex.kafkaexmple.enabled=true"
 })
 public class CucumberSpringContextConfig {
@@ -26,10 +25,10 @@ public class CucumberSpringContextConfig {
     @Autowired
     private MongoTemplate mongoTemplate;
 
-    @Value("${data.test.id.range.start:100}")
+    @Value("${memex.test.data.vehicleinspection-testid-range.start:1000}")
     private long idStart;
 
-    @Value("${data.test.id.range.end:200}")
+    @Value("${memex.test.data.vehicleinspection-testid-range.end:100000}")
     private long idEnd;
 
     @Before

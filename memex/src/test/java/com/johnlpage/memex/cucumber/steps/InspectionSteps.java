@@ -25,6 +25,7 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
@@ -40,6 +41,13 @@ public class InspectionSteps {
 
     @Autowired
     private ObjectMapper objectMapper;
+
+    @Value("${memex.test.data.vehicleinspection-testid-range.start:1000}")
+    private long idStart;
+
+    @Value("${memex.test.data.vehicleinspection-testid-range.end:100000}")
+    private long idEnd;
+
 
     private Response response;
     private ZonedDateTime capturedTimestamp;
@@ -59,18 +67,30 @@ public class InspectionSteps {
         List<VehicleInspection> inspections = new ArrayList<>();
 
         for (Map<String, String> row : rows) {
-            String json = row.get("json");
+            String json = row.get("vehicleInspection");
             VehicleInspection inspection = objectMapper.readValue(json, VehicleInspection.class);
             inspections.add(inspection);
         }
 
-        mongoTemplate.insertAll(inspections);
+        List<VehicleInspection> filtered = inspections.stream()
+                .filter(vi -> vi.getTestid() != null && vi.getTestid() >= idStart && vi.getTestid() <= idEnd)
+                .toList();
+
+        mongoTemplate.insertAll(filtered);
     }
 
-    @Given("the following vehicle inspections exist and have historical data as of {string}:")
-    public void givenVehicleInspectionsExist(String date, DataTable dataTable) {
-        // TODO
-        // test assumes it exists however it would be better to create it here
+    @Given("the vehicle inspections in range {long}-{long} do not exist:")
+    public void theFollowingVehicleInspectionsInRangeDoesNotExist(long startId, long endId) {
+        Query query = new Query();
+        query.addCriteria(Criteria.where("_id").gte(startId).lte(endId));
+        mongoTemplate.remove(query, VehicleInspection.class);
+    }
+
+    @Given("the vehicle inspection with id: {long} do not exist:")
+    public void theFollowingVehicleInspectionDoesNotExist(long startId) {
+        Query query = new Query();
+        query.addCriteria(Criteria.where("_id").is(startId));
+        mongoTemplate.remove(query, VehicleInspection.class);
     }
 
     @Given("the following vehicle inspections do not exist:")
@@ -84,16 +104,27 @@ public class InspectionSteps {
             String key = row.keySet().iterator().next();
             String value = row.get(key);
 
+            boolean idInQueryExists = false;
             Query query = switch (key) {
                 case "testid" -> {
-                    Long testid = Long.parseLong(value);
-                    yield Query.query(Criteria.where("testid").is(testid));
+                    long testid = Long.parseLong(value);
+                    if (testid >= idStart && testid <= idEnd) {
+                        idInQueryExists = true;
+                        yield Query.query(Criteria.where("_id").is(testid));
+                    } else {
+                        yield null;
+                    }
                 }
                 case "model" -> Query.query(Criteria.where("vehicle.model").is(value));
-                default -> throw new UnsupportedOperationException("Unsupported deletion key: " + key);
+                default -> Query.query(Criteria.where(key).is(value));
             };
 
-            mongoTemplate.remove(query, VehicleInspection.class);
+            if(query != null) {
+                if(!idInQueryExists) {
+                    query.addCriteria(Criteria.where("_id").gte(idStart).lte(idEnd));
+                }
+                mongoTemplate.remove(query, VehicleInspection.class);
+            }
         }
     }
 
