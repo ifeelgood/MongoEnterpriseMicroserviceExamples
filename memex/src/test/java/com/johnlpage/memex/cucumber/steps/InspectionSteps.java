@@ -67,7 +67,7 @@ public class InspectionSteps {
             String json = row.get("vehicleInspection");
             VehicleInspection inspection = objectMapper.readValue(json, VehicleInspection.class);
             Long testId = inspection.getTestid();
-            assertNotNull(testId);
+            assertNotNull(testId, "testid is expected to be part of the data input");
 
             idRangeValidator.validate(testId);
             Query query = Query.query(Criteria.where("_id").is(testId));
