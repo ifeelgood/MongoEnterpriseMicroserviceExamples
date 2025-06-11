@@ -1,8 +1,10 @@
 package com.johnlpage.memex.cucumber.steps;
 
+import lombok.Getter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+@Getter
 @Component
 public class VehicleInspectionIdRangeValidator {
 
@@ -12,17 +14,17 @@ public class VehicleInspectionIdRangeValidator {
     @Value("${memex.test.data.vehicleinspection-testid-range.end:20000}")
     private long rangeEnd;
 
-    public void validateId(long id) {
-        if (!(id >= rangeStart && id <= rangeEnd)) {
-            throw new AssertionError("Vehicle inspection testId: " + id + " outside of specified test range");
+    public void validate(long id) {
+        if (id < rangeStart || id > rangeEnd) {
+            throw new AssertionError("Vehicle inspection testid: " + id + " outside of specified test range");
         }
     }
 
-    public void validateStartAndEndId(long startId, long endId) {
+    public void validateRange(long startId, long endId) {
         if (endId < startId) {
-            throw new AssertionError("Vehicle inspection end testId: " + endId + " is less than start testId: " + startId);
+            throw new AssertionError("Vehicle inspection end testid: " + endId + " is less than start testId: " + startId);
         }
-        validateId(startId);
-        validateId(endId);
+        validate(startId);
+        validate(endId);
     }
 }

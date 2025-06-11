@@ -38,61 +38,55 @@ public class VehicleInspectionKafkaConsumerSteps {
     private VehicleInspectionIdRangeValidator idRangeValidator;
 
     @When("I send {int} vehicle inspections starting with id {long} to kafka with:")
-    public void sendVehicleInspectionsAsJsonToKafka(int count, long startId, DataTable dataTable) throws JsonProcessingException {
-        List<Map<String, String>> rows = dataTable.asMaps(String.class, String.class);
-        String baseJson = rows.get(0).get("vehicleInspection");
-
-        JsonNode baseNode = objectMapper.readTree(baseJson);
-
-        idRangeValidator.validateId(startId);
+    public void sendVehicleInspectionsToKafka(int count, long startId, String jsonTemplate) throws JsonProcessingException {
+        idRangeValidator.validate(startId);
         long endIdInclusive = startId + count - 1;
-        idRangeValidator.validateId(endIdInclusive);
+        idRangeValidator.validate(endIdInclusive);
 
         for (int i = 0; i < count; i++) {
             long testId = startId + i;
-            ObjectNode inspectionNode = baseNode.deepCopy();
-            inspectionNode.put("testid", testId);
+            VehicleInspection vehicleInspection = objectMapper.readValue(jsonTemplate, VehicleInspection.class);
+            vehicleInspection.setTestid(testId);
 
-            String message = objectMapper.writeValueAsString(inspectionNode);
+            String message = objectMapper.writeValueAsString(vehicleInspection);
             kafkaTemplate.send("test", message);
         }
     }
 
     @Then("verify {int} vehicle inspections are saved starting from id {long} in mongo with:")
-    public void verifySavedVehicleInspectionsMatchJson(int count, long startId, DataTable dataTable) throws JsonProcessingException {
+    public void verifyVehicleInspectionsSaved(int count, long startId, String expectedJson) throws JsonProcessingException {
         long endId = startId + count - 1;
-        idRangeValidator.validateStartAndEndId(startId, endId);
-
-        List<Map<String, String>> rows = dataTable.asMaps(String.class, String.class);
-        String expectedJson = rows.get(0).get("vehicleInspection");
+        idRangeValidator.validateRange(startId, endId);
 
         JsonNode expectedNode = objectMapper.readTree(expectedJson);
 
-        Query query = new Query(Criteria.where("testid").gte(startId).lte(endId));
+        Query query = Query.query(Criteria.where("testid").gte(startId).lte(endId));
         List<VehicleInspection> inspections = mongoTemplate.find(query, VehicleInspection.class);
 
         Assertions.assertThat(inspections).hasSize(count);
 
-        for (VehicleInspection vi : inspections) {
-            JsonNode actualNode = objectMapper.readTree(objectMapper.writeValueAsString(vi));
+        for (VehicleInspection inspection : inspections) {
+            JsonNode inspectionJson = objectMapper.readTree(objectMapper.writeValueAsString(inspection));
+            assertJsonContains(expectedNode, inspectionJson);
+        }
+    }
 
-            for (Iterator<Map.Entry<String, JsonNode>> it = expectedNode.fields(); it.hasNext(); ) {
-                Map.Entry<String, JsonNode> field = it.next();
-                String fieldName = field.getKey();
-                JsonNode expectedValue = field.getValue();
-                JsonNode actualValue = actualNode.get(fieldName);
 
-                // If nested object (like vehicle.make)
-                if (expectedValue.isObject()) {
-                    Iterator<Map.Entry<String, JsonNode>> nestedFields = expectedValue.fields();
-                    while (nestedFields.hasNext()) {
-                        Map.Entry<String, JsonNode> nested = nestedFields.next();
-                        JsonNode nestedActual = actualValue.get(nested.getKey());
-                        Assertions.assertThat(nestedActual).isEqualTo(nested.getValue());
-                    }
-                } else {
-                    Assertions.assertThat(actualValue).isEqualTo(expectedValue);
-                }
+    private void assertJsonContains(JsonNode expected, JsonNode actual) {
+        for (Iterator<Map.Entry<String, JsonNode>> it = expected.fields(); it.hasNext(); ) {
+            Map.Entry<String, JsonNode> field = it.next();
+            String fieldName = field.getKey();
+            JsonNode expectedValue = field.getValue();
+            JsonNode actualValue = actual.get(fieldName);
+
+            Assertions.assertThat(actualValue)
+                    .withFailMessage("Expected field '%s' to exist", fieldName)
+                    .isNotNull();
+
+            if (expectedValue.isObject()) {
+                assertJsonContains(expectedValue, actualValue);
+            } else {
+                Assertions.assertThat(actualValue).isEqualTo(expectedValue);
             }
         }
     }

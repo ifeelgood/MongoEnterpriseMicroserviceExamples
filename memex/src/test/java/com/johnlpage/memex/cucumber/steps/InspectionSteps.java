@@ -50,12 +50,6 @@ public class InspectionSteps {
     private Response response;
     private ZonedDateTime capturedTimestamp;
 
-    @Value("${memex.test.data.vehicleinspection-testid-range.start:10000}")
-    private static long rangeStart;
-
-    @Value("${memex.test.data.vehicleinspection-testid-range.end:20000}")
-    private static long rangeEnd;
-
     public String baseUrl() {
         return "http://localhost:" + port;
     }
@@ -72,9 +66,10 @@ public class InspectionSteps {
         for (Map<String, String> row : rows) {
             String json = row.get("vehicleInspection");
             VehicleInspection inspection = objectMapper.readValue(json, VehicleInspection.class);
-            long testId = inspection.getTestid();
+            Long testId = inspection.getTestid();
+            assertNotNull(testId);
 
-            idRangeValidator.validateId(testId);
+            idRangeValidator.validate(testId);
             Query query = Query.query(Criteria.where("_id").is(testId));
 
             Document updateDoc = new Document(objectMapper.convertValue(inspection, Map.class));
@@ -87,7 +82,7 @@ public class InspectionSteps {
 
     @Given("the vehicle inspections in range {long}-{long} do not exist")
     public void theFollowingVehicleInspectionsInRangeDoesNotExist(long startId, long endId) {
-        idRangeValidator.validateStartAndEndId(startId, endId);
+        idRangeValidator.validateRange(startId, endId);
         Query query = new Query();
         query.addCriteria(Criteria.where("_id").gte(startId).lte(endId));
         mongoTemplate.remove(query, VehicleInspection.class);
@@ -95,7 +90,7 @@ public class InspectionSteps {
 
     @Given("the vehicle inspection with id {long} does not exist")
     public void theFollowingVehicleInspectionDoesNotExist(long testId) {
-        idRangeValidator.validateId(testId);
+        idRangeValidator.validate(testId);
         Query query = new Query();
         query.addCriteria(Criteria.where("_id").is(testId));
         mongoTemplate.remove(query, VehicleInspection.class);
@@ -111,11 +106,14 @@ public class InspectionSteps {
             String key = row.keySet().iterator().next();
             String value = row.get(key);
 
+            long rangeStart = idRangeValidator.getRangeStart();
+            long rangeEnd = idRangeValidator.getRangeEnd();
+
             Query query = Query.query(Criteria.where("_id").gte(rangeStart).lte(rangeEnd));
 
             if (key.equalsIgnoreCase("testid")) {
                 long testid = Long.parseLong(value);
-                idRangeValidator.validateId(testid);
+                idRangeValidator.validate(testid);
                 query = Query.query(Criteria.where("_id").is(testid));
             } else {
                 query.addCriteria(Criteria.where(key).is(value));
