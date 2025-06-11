@@ -8,7 +8,7 @@ Feature: Vehicle Inspection API Management
 
   @post @one_inspection @sunny_day
   Scenario: Successfully save a single vehicle inspection
-    Given the vehicle inspection with id: 10001 do not exist
+    Given the vehicle inspection with id 10001 does not exist
     When I send a POST request to "/api/inspection" with the payload:
       """
       {
@@ -36,7 +36,7 @@ Feature: Vehicle Inspection API Management
 
   @post @one_inspection @rainy_day
   Scenario: Fail to save a single vehicle inspection due to malformed JSON
-    Given the vehicle inspection with id: 10002 do not exist
+    Given the vehicle inspection with id 10002 does not exist
     When I send a POST request to "/api/inspection" with the payload:
       """
       {

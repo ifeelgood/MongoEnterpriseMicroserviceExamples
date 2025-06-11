@@ -17,6 +17,7 @@ import io.cucumber.java.en.Then;
 import io.restassured.http.ContentType;
 import io.restassured.path.json.JsonPath;
 import io.restassured.response.Response;
+
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -25,13 +26,14 @@ import java.util.concurrent.TimeUnit;
 
 import org.bson.Document;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
 
-public class InspectionSteps extends BaseCucumberSteps {
+public class InspectionSteps {
 
     @LocalServerPort
     private int port;
@@ -42,8 +44,17 @@ public class InspectionSteps extends BaseCucumberSteps {
     @Autowired
     private ObjectMapper objectMapper;
 
+    @Autowired
+    private VehicleInspectionIdRangeValidator idRangeValidator;
+
     private Response response;
     private ZonedDateTime capturedTimestamp;
+
+    @Value("${memex.test.data.vehicleinspection-testid-range.start:10000}")
+    private static long rangeStart;
+
+    @Value("${memex.test.data.vehicleinspection-testid-range.end:20000}")
+    private static long rangeEnd;
 
     public String baseUrl() {
         return "http://localhost:" + port;
@@ -63,35 +74,28 @@ public class InspectionSteps extends BaseCucumberSteps {
             VehicleInspection inspection = objectMapper.readValue(json, VehicleInspection.class);
             long testId = inspection.getTestid();
 
-            if(isIdWithinRange(testId)) {
-                Query query = Query.query(Criteria.where("_id").is(testId));
+            idRangeValidator.validateId(testId);
+            Query query = Query.query(Criteria.where("_id").is(testId));
 
-                Document updateDoc = new Document(objectMapper.convertValue(inspection, Map.class));
-                Update update = Update.fromDocument(updateDoc);
+            Document updateDoc = new Document(objectMapper.convertValue(inspection, Map.class));
+            Update update = Update.fromDocument(updateDoc);
 
-                mongoTemplate.upsert(query, update, VehicleInspection.class);
-            } else {
-                throw new AssertionError("Mongo test ID: "+testId+" outside of specified test range");
-            }
+            mongoTemplate.upsert(query, update, VehicleInspection.class);
 
         }
     }
 
     @Given("the vehicle inspections in range {long}-{long} do not exist")
     public void theFollowingVehicleInspectionsInRangeDoesNotExist(long startId, long endId) {
-        if (endId < startId || !isIdWithinRange(startId) || !isIdWithinRange(endId)) {
-            throw new IllegalArgumentException("Invalid range of IDs specified, startId: "+startId +" , endId: "+endId);
-        }
+        idRangeValidator.validateStartAndEndId(startId, endId);
         Query query = new Query();
         query.addCriteria(Criteria.where("_id").gte(startId).lte(endId));
         mongoTemplate.remove(query, VehicleInspection.class);
     }
 
-    @Given("the vehicle inspection with id: {long} do not exist")
+    @Given("the vehicle inspection with id {long} does not exist")
     public void theFollowingVehicleInspectionDoesNotExist(long testId) {
-        if(!isIdWithinRange(testId)) {
-            throw new AssertionError("Mongo test ID: "+testId+" outside of specified test range");
-        }
+        idRangeValidator.validateId(testId);
         Query query = new Query();
         query.addCriteria(Criteria.where("_id").is(testId));
         mongoTemplate.remove(query, VehicleInspection.class);
@@ -107,22 +111,14 @@ public class InspectionSteps extends BaseCucumberSteps {
             String key = row.keySet().iterator().next();
             String value = row.get(key);
 
-            boolean idInQueryExists = false;
-            Query query = switch (key) {
-                case "testid" -> {
-                    long testid = Long.parseLong(value);
-                    if (testid >= idStart && testid <= idEnd) {
-                        idInQueryExists = true;
-                        yield Query.query(Criteria.where("_id").is(testid));
-                    } else {
-                        throw new AssertionError("Mongo test ID: " + testid + " out of specified testing range");
-                    }
-                }
-                default -> Query.query(Criteria.where(key).is(value));
-            };
+            Query query = Query.query(Criteria.where("_id").gte(rangeStart).lte(rangeEnd));
 
-            if (!idInQueryExists) {
-                query.addCriteria(Criteria.where("_id").gte(idStart).lte(idEnd));
+            if (key.equalsIgnoreCase("testid")) {
+                long testid = Long.parseLong(value);
+                idRangeValidator.validateId(testid);
+                query = Query.query(Criteria.where("_id").is(testid));
+            } else {
+                query.addCriteria(Criteria.where(key).is(value));
             }
             mongoTemplate.remove(query, VehicleInspection.class);
 
