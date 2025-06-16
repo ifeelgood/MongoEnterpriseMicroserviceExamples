@@ -1,4 +1,8 @@
+
+
 package com.johnlpage.memex.cucumber.steps;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -7,25 +11,37 @@ import com.johnlpage.memex.cucumber.service.VehicleInspectionIdRangeValidator;
 import com.johnlpage.memex.model.VehicleInspection;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
+import jakarta.annotation.PostConstruct;
 import org.assertj.core.api.Assertions;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.data.mongodb.core.query.Criteria;
-import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.ResponseEntity;
 import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.web.client.RestClient;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-
+import java.util.concurrent.CompletableFuture;
 
 public class KafkaConsumerSteps {
+
+    @Value("${memex.base-url}")
+    private String apiBaseUrl;
 
     @Autowired
     private KafkaTemplate<String, String> kafkaTemplate;
 
     @Autowired
-    private MongoTemplate mongoTemplate;
+    RestClient.Builder restClientBuilder;
+
+    private RestClient restClient;
+
+    @PostConstruct
+    public void init() {
+        this.restClient = restClientBuilder.baseUrl(apiBaseUrl).build();
+    }
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -33,7 +49,6 @@ public class KafkaConsumerSteps {
     @Autowired
     private VehicleInspectionIdRangeValidator idRangeValidator;
 
-    // TODO: Use public API to save the vehicle inspections
     @When("I send {int} vehicle inspections starting with id {long} to kafka with:")
     public void sendVehicleInspectionsToKafka(int count, long startId, String jsonTemplate) throws JsonProcessingException {
         idRangeValidator.validate(startId);
@@ -50,23 +65,35 @@ public class KafkaConsumerSteps {
         }
     }
 
-    // TODO: Use public API to verify the vehicle inspections are saved
-    @Then("verify {int} vehicle inspections are saved starting from id {long} in mongo with:")
+    @Then("verify {int} vehicle inspections starting from id {long} do exist with:")
     public void verifyVehicleInspectionsSaved(int count, long startId, String expectedJson) throws JsonProcessingException {
         long endId = startId + count - 1;
         idRangeValidator.validateRange(startId, endId);
 
         JsonNode expectedNode = objectMapper.readTree(expectedJson);
 
-        Query query = Query.query(Criteria.where("testid").gte(startId).lte(endId));
-        List<VehicleInspection> inspections = mongoTemplate.find(query, VehicleInspection.class);
+        List<CompletableFuture<Void>> vehicleInspectionFutures = new ArrayList<>();
 
-        Assertions.assertThat(inspections).hasSize(count);
+        for (long i = startId; i <= endId; i++) {
+            long currentId = i;
+            CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
+                try {
+                    ResponseEntity<VehicleInspection> response = makeGetVehicleInspectionByIdRequest(currentId);
+                    assertEquals(200, response.getStatusCode().value());
 
-        for (VehicleInspection inspection : inspections) {
-            JsonNode inspectionJson = objectMapper.readTree(objectMapper.writeValueAsString(inspection));
-            assertJsonContains(expectedNode, inspectionJson);
+                    VehicleInspection inspection = response.getBody();
+                    JsonNode actualJson = objectMapper.readTree(objectMapper.writeValueAsString(inspection));
+                    assertJsonContains(expectedNode, actualJson);
+
+                } catch (Exception e) {
+                    throw new RuntimeException("Vehicle inspection verification failed for testid: " + currentId, e);
+                }
+            });
+
+            vehicleInspectionFutures.add(future);
         }
+
+        CompletableFuture.allOf(vehicleInspectionFutures.toArray(new CompletableFuture[0])).join();
     }
 
 
@@ -87,6 +114,13 @@ public class KafkaConsumerSteps {
                 Assertions.assertThat(actualValue).isEqualTo(expectedValue);
             }
         }
+    }
+
+    public ResponseEntity<VehicleInspection> makeGetVehicleInspectionByIdRequest(long id) {
+        return restClient.get()
+                .uri(apiBaseUrl + "/api/inspections/id/" + id)
+                .retrieve()
+                .toEntity(VehicleInspection.class);
     }
 
 }
