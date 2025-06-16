@@ -1,5 +1,3 @@
-
-
 package com.johnlpage.memex.cucumber.steps;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -100,7 +98,6 @@ public class KafkaConsumerSteps {
             assertJsonContains(expectedNode, actualJson);
         });
     }
-
 
     private void assertJsonContains(JsonNode expected, JsonNode actual) {
         for (Iterator<Map.Entry<String, JsonNode>> it = expected.fields(); it.hasNext(); ) {
