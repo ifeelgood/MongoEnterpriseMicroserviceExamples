@@ -15,6 +15,8 @@ import jakarta.annotation.PostConstruct;
 import org.assertj.core.api.Assertions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.web.client.RestClient;
@@ -34,7 +36,7 @@ public class KafkaConsumerSteps {
     private KafkaTemplate<String, String> kafkaTemplate;
 
     @Autowired
-    RestClient.Builder restClientBuilder;
+    private RestClient.Builder restClientBuilder;
 
     private RestClient restClient;
 
@@ -72,28 +74,31 @@ public class KafkaConsumerSteps {
 
         JsonNode expectedNode = objectMapper.readTree(expectedJson);
 
-        List<CompletableFuture<Void>> vehicleInspectionFutures = new ArrayList<>();
+        String rangeCheck = "\"_id\": {\"$gte\": " + startId + ", \"$lte\": " + endId + "}";
+        String mongoQueryJson = String.format("{\"filter\": {%s}}", rangeCheck);
 
-        for (long i = startId; i <= endId; i++) {
-            long currentId = i;
-            CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
-                try {
-                    ResponseEntity<VehicleInspection> response = makeGetVehicleInspectionByIdRequest(currentId);
-                    assertEquals(200, response.getStatusCode().value());
+        ResponseEntity<List<VehicleInspection>> responseEntity = restClient.post()
+                .uri(apiBaseUrl + "/api/inspections/query")
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(mongoQueryJson)
+                .retrieve()
+                .toEntity(new ParameterizedTypeReference<List<VehicleInspection>>() {
+                });
 
-                    VehicleInspection inspection = response.getBody();
-                    JsonNode actualJson = objectMapper.readTree(objectMapper.writeValueAsString(inspection));
-                    assertJsonContains(expectedNode, actualJson);
+        assertTrue(responseEntity.getStatusCode().is2xxSuccessful());
+        List<VehicleInspection> inspections = responseEntity.getBody();
 
-                } catch (Exception e) {
-                    throw new RuntimeException("Vehicle inspection verification failed for testid: " + currentId, e);
-                }
-            });
-
-            vehicleInspectionFutures.add(future);
-        }
-
-        CompletableFuture.allOf(vehicleInspectionFutures.toArray(new CompletableFuture[0])).join();
+        assertNotNull(inspections);
+        assertEquals(count, inspections.size());
+        inspections.forEach((inspection) -> {
+            JsonNode actualJson = null;
+            try {
+                actualJson = objectMapper.readTree(objectMapper.writeValueAsString(inspection));
+            } catch (JsonProcessingException e) {
+                throw new RuntimeException("Vehicle inspection verification failed for testid: " + inspection.getTestid(), e);
+            }
+            assertJsonContains(expectedNode, actualJson);
+        });
     }
 
 
