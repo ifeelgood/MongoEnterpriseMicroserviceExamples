@@ -49,6 +49,8 @@ jobs:
         title: '# Java Code Coverage Report'
 
     - name: Cucumber Report
+      if: github.repository == 'ifeelgood/MongoEnterpriseMicroserviceExamples'
+      continue-on-error: true
       uses: deblockt/cucumber-report-annotations-action@v1.7
       with:
         access-token: ${{ secrets.GITHUB_TOKEN }}
