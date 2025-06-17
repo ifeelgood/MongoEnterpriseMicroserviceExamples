@@ -26,7 +26,7 @@ import java.util.Map;
 public class KafkaConsumerSteps {
 
     @Value("${memex.base-url}")
-    private String apiBaseUrl;
+    private String apiBaseUrl;// test
 
     @Autowired
     private KafkaTemplate<String, String> kafkaTemplate;
