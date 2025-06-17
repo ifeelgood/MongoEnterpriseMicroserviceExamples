@@ -45,7 +45,7 @@ public class KafkaConsumerSteps {
             vehicleInspection.setTestid(testId);
 
             String message = objectMapper.writeValueAsString(vehicleInspection);
-            kafkaTemplate.send("test", message);
+            kafkaTemplate.send("test", message); // test
         }
     }
 
