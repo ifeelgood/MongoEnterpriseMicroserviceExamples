@@ -14,5 +14,5 @@ Feature: Vehicle Inspection Kafka Integration
     Then I wait for 2 seconds
     And 100 vehicle inspections starting from id 10000 do exist with:
     """
-    {"capacity": 12, "vehicle": {"make": "Ford"}}
+    {"capacity": 60, "vehicle": {"make": "Ford"}}
     """
