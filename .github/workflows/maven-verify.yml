@@ -37,6 +37,8 @@ jobs:
         path: ${{ github.workspace }}/memex/target/site/jacoco
                   
     - name: JaCoCo Report
+      if: github.repository == 'ifeelgood/MongoEnterpriseMicroserviceExamples'
+      continue-on-error: true
       uses: Madrapps/jacoco-report@v1.7.2
       with:
         # Comma separated paths of the generated jacoco xml files (supports wildcard glob pattern)
