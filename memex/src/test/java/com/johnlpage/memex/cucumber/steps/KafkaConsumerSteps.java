@@ -70,6 +70,8 @@ public class KafkaConsumerSteps {
 
         JsonNode expectedNode = objectMapper.readTree(expectedJson);
 
+        // test
+
         String rangeCheck = "\"_id\": {\"$gte\": " + startId + ", \"$lte\": " + endId + "}";
         String mongoQueryJson = String.format("{\"filter\": {%s}}", rangeCheck);
 
