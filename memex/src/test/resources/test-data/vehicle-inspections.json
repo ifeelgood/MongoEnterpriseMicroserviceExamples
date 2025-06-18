@@ -1,0 +1,453 @@
+[
+  {
+    "testtype": "Normal Test",
+    "vehicle": {
+      "colour": "SILVER",
+      "make": "AUDI",
+      "model": "A3",
+      "vehicleid": 4151524
+    },
+    "postcode": "NG",
+    "testclass": 4,
+    "testresult": "Failed",
+    "faileditems": [
+      {
+        "faileditems": {
+          "rfrtype": "A",
+          "rfrid": 30329,
+          "details": {
+            "item": {
+              "itemname": "Brake pads",
+              "category": {
+                "itemname": "Brake linings and pads",
+                "category": {
+                  "itemname": "Mechanical brake components",
+                  "category": {
+                    "itemname": "Brakes"
+                  }
+                }
+              }
+            },
+            "minoritem": "N",
+            "description": "Dangerous",
+            "rfrid": 30329,
+            "text": "a brake lining or pad worn below 1.5mm"
+          },
+          "location": {
+            "lateral": "",
+            "longitudinal": "Front",
+            "vertical": ""
+          }
+        }
+      },
+      {
+        "faileditems": {
+          "rfrtype": "A",
+          "rfrid": 32115,
+          "details": {
+            "item": {
+              "itemname": "Shock absorbers",
+              "category": {
+                "itemname": "Suspension"
+              }
+            },
+            "minoritem": "N",
+            "description": "Major",
+            "rfrid": 32115,
+            "text": "A shock absorber damaged to the extent that it does not function or showing signs of severe leakage"
+          }
+        }
+      },
+      {
+        "faileditems": {
+          "rfrtype": "F",
+          "rfrid": 32041,
+          "details": {
+            "item": {
+              "itemname": "Position lamp",
+              "category": {
+                "itemname": "Position lamps",
+                "category": {
+                  "itemname": "Lamps, reflectors and electrical equipment"
+                }
+              }
+            },
+            "minoritem": "N",
+            "description": "Major",
+            "rfrid": 32041,
+            "text": "N"
+          },
+          "location": {
+            "lateral": "Nearside",
+            "longitudinal": "Rear",
+            "vertical": ""
+          }
+        }
+      },
+      {
+        "faileditems": {
+          "rfrtype": "A",
+          "rfrid": 31940,
+          "details": {
+            "item": {
+              "itemname": "Engine oil leaks",
+              "category": {
+                "itemname": "Fluid leaks",
+                "category": {
+                  "itemname": "Noise, emissions and leaks"
+                }
+              }
+            },
+            "minoritem": "N",
+            "description": "Major",
+            "rfrid": 31940,
+            "text": "Fluid leaking excessively and likely to harm the environment or to pose a safety risk to other road users"
+          },
+          "location": {
+            "lateral": "",
+            "longitudinal": "",
+            "vertical": ""
+          }
+        }
+      },
+      {
+        "faileditems": {
+          "rfrtype": "F",
+          "rfrid": 40560,
+          "details": {
+            "item": {
+              "itemname": "Pipe",
+              "category": {
+                "itemname": "Fuel system",
+                "category": {
+                  "itemname": "Motorcycle structure and attachments"
+                }
+              }
+            },
+            "minoritem": "Y",
+            "description": "Major",
+            "rfrid": 40560,
+            "text": "N"
+          },
+          "location": {
+            "lateral": "",
+            "longitudinal": "",
+            "vertical": ""
+          }
+        }
+      },
+      {
+        "faileditems": {
+          "rfrtype": "F",
+          "rfrid": 31380,
+          "details": {
+            "item": {
+              "itemname": "Pins and bushes",
+              "category": {
+                "itemname": "Anti-roll bars",
+                "category": {
+                  "itemname": "Suspension"
+                }
+              }
+            },
+            "minoritem": "N",
+            "description": "Major",
+            "rfrid": 31380,
+            "text": "Y"
+          },
+          "location": {
+            "lateral": "",
+            "longitudinal": "Front",
+            "vertical": ""
+          }
+        }
+      },
+      {
+        "faileditems": {
+          "rfrtype": "A",
+          "rfrid": 30329,
+          "details": {
+            "item": {
+              "itemname": "Brake pads",
+              "category": {
+                "itemname": "Brake linings and pads",
+                "category": {
+                  "itemname": "Mechanical brake components",
+                  "category": {
+                    "itemname": "Brakes"
+                  }
+                }
+              }
+            },
+            "minoritem": "N",
+            "description": "Dangerous",
+            "rfrid": 30329,
+            "text": "a brake lining or pad worn below 1.5mm"
+          }
+        }
+      },
+      {
+        "faileditems": {
+          "rfrtype": "A",
+          "rfrid": 30305,
+          "details": {
+            "item": {
+              "itemname": "Rigid brake pipes",
+              "category": {
+                "itemname": "Brakes"
+              }
+            },
+            "minoritem": "N",
+            "description": "Major",
+            "rfrid": 30305,
+            "text": "Brake pipe damaged or excessively corroded"
+          }
+        }
+      },
+      {
+        "faileditems": {
+          "rfrtype": "A",
+          "rfrid": 32037,
+          "details": {
+            "item": {
+              "itemname": "Condition",
+              "category": {
+                "itemname": "Tyres"
+              }
+            },
+            "minoritem": "N",
+            "description": "Dangerous",
+            "rfrid": 32037,
+            "text": "A tyre seriously damaged"
+          },
+          "location": {
+            "lateral": "Offside",
+            "longitudinal": "",
+            "vertical": ""
+          }
+        }
+      },
+      {
+        "faileditems": {
+          "rfrtype": "A",
+          "rfrid": 30329,
+          "details": {
+            "item": {
+              "itemname": "Brake pads",
+              "category": {
+                "itemname": "Brake linings and pads",
+                "category": {
+                  "itemname": "Mechanical brake components",
+                  "category": {
+                    "itemname": "Brakes"
+                  }
+                }
+              }
+            },
+            "minoritem": "N",
+            "description": "Dangerous",
+            "rfrid": 30329,
+            "text": "a brake lining or pad worn below 1.5mm"
+          },
+          "location": {
+            "lateral": "Offside",
+            "longitudinal": "",
+            "vertical": ""
+          }
+        }
+      },
+      {
+        "faileditems": {
+          "rfrtype": "A",
+          "rfrid": 32037,
+          "details": {
+            "item": {
+              "itemname": "Condition",
+              "category": {
+                "itemname": "Tyres"
+              }
+            },
+            "minoritem": "N",
+            "description": "Dangerous",
+            "rfrid": 32037,
+            "text": "A tyre seriously damaged"
+          },
+          "location": {
+            "lateral": "",
+            "longitudinal": "",
+            "vertical": ""
+          }
+        }
+      },
+      {
+        "faileditems": {
+          "rfrtype": "A",
+          "rfrid": 30305,
+          "details": {
+            "item": {
+              "itemname": "Rigid brake pipes",
+              "category": {
+                "itemname": "Brakes"
+              }
+            },
+            "minoritem": "N",
+            "description": "Major",
+            "rfrid": 30305,
+            "text": "Brake pipe damaged or excessively corroded"
+          },
+          "location": {
+            "lateral": "Nearside",
+            "longitudinal": "Rear",
+            "vertical": ""
+          }
+        }
+      },
+      {
+        "faileditems": {
+          "rfrtype": "A",
+          "rfrid": 30335,
+          "details": {
+            "item": {
+              "itemname": "Brake discs",
+              "category": {
+                "itemname": "Brake discs and  drums",
+                "category": {
+                  "itemname": "Mechanical brake components",
+                  "category": {
+                    "itemname": "Brakes"
+                  }
+                }
+              }
+            },
+            "minoritem": "N",
+            "description": "Dangerous",
+            "rfrid": 30335,
+            "text": "Brake disc or drum excessively weakened, insecure or fractured"
+          },
+          "location": {
+            "lateral": "Nearside",
+            "longitudinal": "Rear",
+            "vertical": ""
+          }
+        }
+      }
+    ],
+    "testid": 10000,
+    "testdate": "2022-06-11",
+    "testmileage": 78228,
+    "firstusedate": "1990-09-22",
+    "fueltype": "DIESEL",
+    "capacity": 1200
+  },
+  {
+    "testtype": "Normal Test",
+    "vehicle": {
+      "colour": "BLACK",
+      "make": "LAND ROVER",
+      "model": "FREELANDER",
+      "vehicleid": 5827709
+    },
+    "postcode": "HP",
+    "testclass": 4,
+    "testresult": "Passed",
+    "faileditems": [
+      {
+        "faileditems": {
+          "rfrtype": "A",
+          "rfrid": 30305,
+          "details": {
+            "item": {
+              "itemname": "Rigid brake pipes",
+              "category": {
+                "itemname": "Brakes"
+              }
+            },
+            "minoritem": "N",
+            "description": "Major",
+            "rfrid": 30305,
+            "text": "Brake pipe damaged or excessively corroded"
+          }
+        }
+      },
+      {
+        "faileditems": {
+          "rfrtype": "A",
+          "rfrid": 31322,
+          "details": {
+            "item": {
+              "itemname": "Pins and bushes",
+              "category": {
+                "itemname": "Suspension arms",
+                "category": {
+                  "itemname": "Suspension"
+                }
+              }
+            },
+            "minoritem": "N",
+            "description": "Major",
+            "rfrid": 31322,
+            "text": "A suspension pin, bush or joint excessively worn"
+          }
+        }
+      },
+      {
+        "faileditems": {
+          "rfrtype": "A",
+          "rfrid": 30516,
+          "details": {
+            "item": {
+              "itemname": "Parking brake efficiency (Trikes, quads and pre-68 vehicles)",
+              "category": {
+                "itemname": "Decelerometer",
+                "category": {
+                  "itemname": "Parking brake performance",
+                  "category": {
+                    "itemname": "Brake performance"
+                  }
+                }
+              }
+            },
+            "minoritem": "N",
+            "description": "Major",
+            "rfrid": 30516,
+            "text": "Parking brake efficiency below minimum requirement"
+          },
+          "location": {
+            "lateral": "",
+            "longitudinal": "",
+            "vertical": ""
+          }
+        }
+      },
+      {
+        "faileditems": {
+          "rfrtype": "A",
+          "rfrid": 31194,
+          "details": {
+            "item": {
+              "itemname": "Tread depth",
+              "category": {
+                "itemname": "Tyres"
+              }
+            },
+            "minoritem": "N",
+            "description": "Dangerous",
+            "rfrid": 31194,
+            "text": "Tyre tread depth not in accordance with the requirements"
+          },
+          "location": {
+            "lateral": "",
+            "longitudinal": "Front",
+            "vertical": ""
+          }
+        }
+      }
+    ],
+    "testid": 10001,
+    "testdate": "2022-10-29",
+    "testmileage": 54473,
+    "firstusedate": "1999-06-16",
+    "fueltype": "PETROL",
+    "capacity": 1560
+  }
+]
