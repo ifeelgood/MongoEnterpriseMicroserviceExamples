@@ -8,17 +8,23 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import com.johnlpage.memex.cucumber.service.MacrosRegister;
 import io.cucumber.java.ParameterType;
+import io.cucumber.java.en.And;
 import io.cucumber.java.en.When;
 import io.cucumber.java.en.Then;
 import io.restassured.http.ContentType;
 import io.restassured.path.json.JsonPath;
 import io.restassured.response.Response;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.ClassPathResource;
 
 public class RestApiSteps {
 
@@ -29,6 +35,8 @@ public class RestApiSteps {
     MacrosRegister macroRegister;
 
     private Response response;
+
+    private long durationMs;
 
     @ParameterType("true|false")
     public Boolean bool(String bool) {
@@ -159,5 +167,48 @@ public class RestApiSteps {
                 fail("Line is not a valid JSON object: '" + line + "'. Error: " + e.getMessage());
             }
         }
+    }
+
+    @When("I send a POST request to {string} with the payload from {string}")
+    public void sendPostRequestWithPayloadFromZip(String endpoint, String zipFilePath) throws IOException {
+        ClassPathResource zipResource = new ClassPathResource(zipFilePath);
+        if (!zipResource.exists()) {
+            throw new AssertionError("ZIP file not found: " + zipFilePath);
+        }
+
+        byte[] payload = extractJsonFromZip(zipResource);
+
+        long startTime = System.nanoTime();
+
+        response = given()
+                .baseUri(baseUrl)
+                .contentType(ContentType.JSON)
+                .body(payload)
+                .post(endpoint);
+
+        long endTime = System.nanoTime();
+        durationMs = (endTime - startTime) / 1_000_000;
+    }
+
+
+    @And("the response time should be under {int} milliseconds")
+    public void responseTimeShouldBeUnderLimit(int maxAllowedMs) {
+
+        assertTrue(durationMs <= maxAllowedMs,
+                "API call took too long: " + durationMs + "ms (limit: " + maxAllowedMs + "ms)");
+    }
+
+    private byte[] extractJsonFromZip(ClassPathResource zipResource) throws IOException {
+        try (InputStream zipInputStream = zipResource.getInputStream();
+             ZipInputStream zis = new ZipInputStream(zipInputStream)) {
+
+            ZipEntry entry;
+            while ((entry = zis.getNextEntry()) != null) {
+                if (entry.getName().endsWith(".json")) {
+                    return zis.readAllBytes();
+                }
+            }
+        }
+        throw new AssertionError("No .json file found in zip: " + zipResource.getPath());
     }
 }

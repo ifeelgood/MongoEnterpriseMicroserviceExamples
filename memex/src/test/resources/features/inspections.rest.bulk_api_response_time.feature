@@ -6,8 +6,6 @@ Feature: Bulk Vehicle Inspection API
 
   @sunny_day @fast_response
   Scenario: Successfully submit vehicle inspections in bulk within time limit
-    Given I load vehicle inspections from file "test-data/vehicle-inspections.json"
-    And I validate all inspection test IDs
-    When I send inspections to the bulk API: "/api/inspections?updateStrategy=INSERT&futz=true"
-    Then the response status should be 2xx
-    And the response time should be under 4 seconds
+    When I send a POST request to "/api/inspections?updateStrategy=INSERT&futz=true" with the payload from "test-data/vehicle-inspections.zip"
+    Then the response status code should be 200
+    And the response time should be under 3000 milliseconds
