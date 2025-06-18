@@ -53,8 +53,8 @@ public class BulkInspectionApiSteps {
         }
 
         try (InputStream inputStream = resource.getInputStream()) {
-                jsonString = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
-                inspections = objectMapper.readValue(jsonString, new TypeReference<List<VehicleInspection>>() {
+            jsonString = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
+            inspections = objectMapper.readValue(jsonString, new TypeReference<List<VehicleInspection>>() {
             });
         }
     }
